@@ -22,6 +22,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(resp.read())
         except Exception as e:
+            print(f'Proxy error: {e}', flush=True)
             self.send_response(502)
             self.end_headers()
             self.wfile.write(str(e).encode())
