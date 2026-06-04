@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
-import ssl, urllib.request, urllib.error
+import ssl, http.client
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-TARGET = '<https://127.0.0.1:5000>'
 _ctx = ssl.create_default_context()
 _ctx.check_hostname = False
 _ctx.verify_mode = ssl.CERT_NONE
@@ -11,21 +10,17 @@ class ProxyHandler(BaseHTTPRequestHandler):
     def proxy(self):
         length = int(self.headers.get('Content-Length', 0))
         body = self.rfile.read(length) if length else None
-        req = urllib.request.Request(TARGET + self.path, data=body, method=self.command)
-        for k, v in self.headers.items():
-            if k.lower() not in ('host', 'content-length'):
-                req.add_header(k, v)
+        hdrs = {k: v for k, v in self.headers.items()
+                if k.lower() not in ('host', 'content-length')}
         try:
-            with urllib.request.urlopen(req, context=_ctx, timeout=60) as r:
-                self.send_response(r.status)
-                for k, v in r.headers.items():
-                    self.send_header(k, v)
-                self.end_headers()
-                self.wfile.write(r.read())
-        except urllib.error.HTTPError as e:
-            self.send_response(e.code)
+            conn = http.client.HTTPSConnection('127.0.0.1', 5000, context=_ctx)
+            conn.request(self.command, self.path, body, hdrs)
+            resp = conn.getresponse()
+            self.send_response(resp.status)
+            for k, v in resp.getheaders():
+                self.send_header(k, v)
             self.end_headers()
-            self.wfile.write(e.read())
+            self.wfile.write(resp.read())
         except Exception as e:
             self.send_response(502)
             self.end_headers()
@@ -33,4 +28,5 @@ class ProxyHandler(BaseHTTPRequestHandler):
     def log_message(self, *a): pass
     do_GET = do_POST = do_PUT = do_DELETE = do_PATCH = proxy
 
+print('Proxy listening on 8080', flush=True)
 HTTPServer(('0.0.0.0', 8080), ProxyHandler).serve_forever()
