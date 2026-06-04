@@ -25,7 +25,7 @@ RUN \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y default-jre dbus-x11 xfonts-base xfonts-100dpi \
         xfonts-75dpi xfonts-scalable xorg xvfb gtk2-engines-pixbuf nano curl iputils-ping \
-        chromium chromium-driver nginx build-essential && \
+        chromium chromium-driver build-essential && \
     # Install python packages
     pip install --upgrade pip setuptools wheel && \
     pip install -r /srv/requirements.txt && \
@@ -37,6 +37,7 @@ COPY copy_cache/clientportal.gw $IBEAM_GATEWAY_DIR
 COPY ibeam $SRC_ROOT
 COPY nginx.conf /srv/ibeam/nginx.conf
 COPY start.sh /srv/ibeam/start.sh
+COPY proxy.py /srv/ibeam/proxy.py
 
 RUN \
     # Create environment activation script
