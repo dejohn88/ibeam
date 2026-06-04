@@ -25,7 +25,7 @@ RUN \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y default-jre dbus-x11 xfonts-base xfonts-100dpi \
         xfonts-75dpi xfonts-scalable xorg xvfb gtk2-engines-pixbuf nano curl iputils-ping \
-        chromium chromium-driver build-essential && \
+        chromium chromium-driver nginx build-essential && \
     # Install python packages
     pip install --upgrade pip setuptools wheel && \
     pip install -r /srv/requirements.txt && \
@@ -35,20 +35,18 @@ RUN \
 
 COPY copy_cache/clientportal.gw $IBEAM_GATEWAY_DIR
 COPY ibeam $SRC_ROOT
+COPY nginx.conf /srv/ibeam/nginx.conf
+COPY start.sh /srv/ibeam/start.sh
 
 RUN \
     # Create environment activation script
     echo "/opt/venv/bin/activate" >> $SRC_ROOT/activate.sh && \
     # Update file ownership and permissions
     chown -R $USER_NAME:$GROUP_NAME $SRC_ROOT $OUTPUTS_DIR $IBEAM_GATEWAY_DIR && \
-    chmod 744 /opt/venv/bin/activate /srv/ibeam/run.sh $SRC_ROOT/activate.sh
+    chmod 744 /opt/venv/bin/activate /srv/ibeam/run.sh $SRC_ROOT/activate.sh /srv/ibeam/start.sh
 
 WORKDIR $SRC_ROOT
 
 USER $USER_NAME
 
-#CMD python ./ibeam_starter.py
-#ENTRYPOINT ["/srv/ibeam/run.sh"]
-#ENTRYPOINT ["bash"]
-#CMD ["/srv/ibeam/run.sh"]
-CMD ["python", "ibeam_starter.py"]
+CMD ["/srv/ibeam/start.sh"]
