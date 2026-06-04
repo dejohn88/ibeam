@@ -13,7 +13,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         hdrs = {k: v for k, v in self.headers.items()
                 if k.lower() not in ('host', 'content-length')}
         try:
-            conn = http.client.HTTPSConnection('127.0.0.1', 5000, context=_ctx)
+            conn = http.client.HTTPSConnection('127.0.0.1', 5000, context=_ctx, timeout=15)
             conn.request(self.command, self.path, body, hdrs)
             resp = conn.getresponse()
             self.send_response(resp.status)
