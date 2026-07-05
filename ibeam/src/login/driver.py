@@ -32,11 +32,11 @@ def _new_chrome_driver(driver_path, name: str = 'default', headless: bool = True
     if headless:
         options.add_argument('--headless')
         options.add_argument('--disable-gpu')
+    options.binary_location = '/opt/chrome-for-testing/chrome'
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--enable-logging=stderr')
     options.add_argument('--v=1')
-    options.add_argument('--no-zygote')
     if incognito:
         options.add_argument("--incognito")  # this allows 2FA method to be selected every time
     options.add_argument('--ignore-ssl-errors=yes')
