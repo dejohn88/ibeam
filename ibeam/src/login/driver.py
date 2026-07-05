@@ -34,6 +34,7 @@ def _new_chrome_driver(driver_path, name: str = 'default', headless: bool = True
         options.add_argument('--disable-gpu')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--single-process')
     if incognito:
         options.add_argument("--incognito")  # this allows 2FA method to be selected every time
     options.add_argument('--ignore-ssl-errors=yes')
