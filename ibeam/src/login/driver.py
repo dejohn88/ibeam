@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 import sys
 import tempfile
 from datetime import datetime
@@ -44,7 +45,7 @@ def _new_chrome_driver(driver_path, name: str = 'default', headless: bool = True
     options.add_argument('--disable-features=VizDisplayCompositor')
     options.add_argument(f"--force-device-scale-factor={ui_scaling}")
     options.add_argument(f'--user-data-dir={tempfile.gettempdir()}/ibeam-chrome-{name}')
-    service = Service(executable_path=driver_path)
+    service = Service(executable_path=driver_path, service_args=['--verbose'], log_output=subprocess.STDOUT)
     driver = webdriver.Chrome(options=options, service=service)
     if driver is None:
         _LOGGER.error('Unable to create a new chrome driver.')
