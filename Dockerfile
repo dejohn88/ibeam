@@ -42,6 +42,15 @@ RUN \
     mv /opt/chromedriver-linux64/chromedriver /usr/bin/chromedriver && \
     chmod +x /usr/bin/chromedriver /opt/chrome-for-testing/chrome && \
     rm -rf /tmp/chrome.zip /tmp/chromedriver.zip /opt/chromedriver-linux64 && \
+    # Download the Client Portal Gateway fresh instead of using the vendored
+    # copy_cache/clientportal.gw (checked in ~April 2023 and never refreshed).
+    # That stale JAR can complete SSO login but fails to establish the
+    # "iserver bridge" to IBKR's backend, leaving auth/status stuck at
+    # authenticated:false indefinitely - a known issue (Voyz/ibeam #279)
+    # fixed by pulling a current build from IBKR's own always-current URL.
+    curl -fsSL -o /tmp/cpgw.zip https://download2.interactivebrokers.com/portal/clientportal.gw.zip && \
+    unzip -q /tmp/cpgw.zip -d $IBEAM_GATEWAY_DIR && \
+    rm -f /tmp/cpgw.zip && \
     # Install python packages
     pip install --upgrade pip setuptools wheel && \
     pip install -r /srv/requirements.txt && \
@@ -49,7 +58,6 @@ RUN \
     apt-get purge -y --auto-remove build-essential && \
     rm -rf /var/lib/apt/lists/*
 
-COPY copy_cache/clientportal.gw $IBEAM_GATEWAY_DIR
 COPY ibeam $SRC_ROOT
 COPY nginx.conf /srv/ibeam/nginx.conf
 COPY start.sh /srv/ibeam/start.sh
