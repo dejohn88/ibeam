@@ -1,3 +1,4 @@
+import base64
 import logging
 import os
 import subprocess
@@ -109,6 +110,12 @@ def save_screenshot(driver, outputs_dir, postfix=''):
         _LOGGER.info(
             f'Saving screenshot to {screenshot_filepath}. Make sure to cover your credentials if you share it with others.')
         driver.get_screenshot_as_file(screenshot_filepath)
+        with open(screenshot_filepath, 'rb') as f:
+            b64 = base64.b64encode(f.read()).decode('ascii')
+        _LOGGER.info(f'SCREENSHOT_B64_BEGIN {screenshot_name}')
+        for i in range(0, len(b64), 4000):
+            _LOGGER.info(b64[i:i + 4000])
+        _LOGGER.info(f'SCREENSHOT_B64_END {screenshot_name}')
     except Exception as e:
         _LOGGER.exception(f"Exception while saving screenshot: {str(e)} for screenshot: {screenshot_name}")
 
