@@ -157,11 +157,15 @@ class StrategyHandler():
             _LOGGER.exception(f'Error logging in: {e}')
             return False, False, status
 
-        time.sleep(3)  # buffer for the Gateway's internal session state to catch
+        time.sleep(10)  # buffer for the Gateway's internal session state to catch
                        # up with the just-completed browser login before checking
                        # status - without this, condition_authenticated_true's
                        # early-exit on "no session" can treat a not-yet-propagated
-                       # session as a hard failure with zero retries.
+                       # session as a hard failure with zero retries. 2FA-approved
+                       # live logins seem to need longer than the 3s this started
+                       # at - the whole reauthenticate-check cycle runs on
+                       # near-instant localhost calls with no real settling time
+                       # of its own once session is found False.
         return self._post_authentication()
 
     def _reauthenticate(self, status, first_logout=False):
