@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -112,10 +113,14 @@ def save_screenshot(driver, outputs_dir, postfix=''):
         driver.get_screenshot_as_file(screenshot_filepath)
         with open(screenshot_filepath, 'rb') as f:
             b64 = base64.b64encode(f.read()).decode('ascii')
-        _LOGGER.info(f'SCREENSHOT_B64_BEGIN {screenshot_name}')
-        for i in range(0, len(b64), 4000):
-            _LOGGER.info(b64[i:i + 4000])
-        _LOGGER.info(f'SCREENSHOT_B64_END {screenshot_name}')
+        chunk_size = 3000
+        chunks = [b64[i:i + chunk_size] for i in range(0, len(b64), chunk_size)]
+        total = len(chunks)
+        _LOGGER.info(f'SCREENSHOT_B64_META {screenshot_name} total={total} bytes={len(b64)}')
+        for i, chunk in enumerate(chunks):
+            _LOGGER.info(f'SCREENSHOT_B64_CHUNK {i}/{total} {chunk}')
+            time.sleep(0.05)
+        _LOGGER.info(f'SCREENSHOT_B64_DONE {screenshot_name}')
     except Exception as e:
         _LOGGER.exception(f"Exception while saving screenshot: {str(e)} for screenshot: {screenshot_name}")
 
