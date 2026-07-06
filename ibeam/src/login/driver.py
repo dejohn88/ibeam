@@ -160,9 +160,32 @@ class DriverFactory():
         return start_driver(driver_path=driver_path, name=name, headless=headless, incognito=incognito, ui_scaling=ui_scaling, page_load_timeout=page_load_timeout)
 
 
+def _clean_stale_x11_locks():
+    """Remove leftover X11 lock/socket files from previous crashed Xvfb instances.
+
+    Without this, a failed Display.start() can leave /tmp/.X11-unix/X<n> or
+    /tmp/.X<n>-lock behind, which then blocks every subsequent attempt to bind
+    the same display number with SocketCreateListener() failures.
+    """
+    import glob
+    try:
+        os.makedirs('/tmp/.X11-unix', exist_ok=True)
+        os.chmod('/tmp/.X11-unix', 0o1777)
+    except Exception as e:
+        _LOGGER.warning(f'Could not ensure /tmp/.X11-unix exists with correct permissions: {e}')
+    for pattern in ('/tmp/.X11-unix/X*', '/tmp/.X*-lock'):
+        for path in glob.glob(pattern):
+            try:
+                os.remove(path)
+                _LOGGER.info(f'Removed stale X11 lock file: {path}')
+            except Exception as e:
+                _LOGGER.warning(f'Could not remove stale X11 lock file {path}: {e}')
+
+
 def start_up_browser(driver_factory:DriverFactory) -> (webdriver.Chrome, Optional[Display]):
     display = None
     if sys.platform == 'linux':
+        _clean_stale_x11_locks()
         display = Display(visible=False, size=(800, 600))
         display.start()
 
